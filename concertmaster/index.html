@@ -1,0 +1,29 @@
+
+<html>
+    <style>
+        #Bow-Image {
+            animation-name: bow-animation;
+            animation-delay: 0;
+            animation-duration: 1s;
+            animation-iteration-count: 10;
+            animation-play-state: running;
+            position: relative;
+        }
+        @keyframes bow-animation {
+            0% {
+                bottom: 0px;
+            }
+            50% {
+                bottom: 100px;
+            }
+            100% {
+                bottom: 0px
+            }
+        }
+    </style>
+    <main>
+        <div>
+            <img src = "./images/bow.webp" id = "Bow-Image">
+        </div>
+    </main>
+</html>

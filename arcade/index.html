@@ -1,0 +1,36 @@
+<html>
+    <style>
+        .ArcadeCanvas {
+            margin: auto;
+            text-align: center;
+            
+        }
+        .button {
+            width: 50px;
+            height: 20px;
+            text-align: center;
+            cursor: pointer;
+            background-color: red;
+            font: white;
+        }
+        .Mode-Button {
+            display: inline-block;
+            left: 50px;
+        }
+        #Mode-Selection {
+            margin: auto;
+            text-align: center;
+            visibility: hidden;
+        }
+    </style>
+    <main>
+        <div class = "Button" id = "Pong-Button">Pong</div>
+        <div class = "ArcadeCanvas"><canvas id = "Canvas" width = 900px height = 600px></canvas></div>
+        <div id = "Mode-Selection">
+            <div class = "Button Mode-Button" id = "Beginner">Beginner</div>
+            <div class = "Button Mode-Button" id = "Intermediate">Intermediate</div>
+            <div class = "Button Mode-Button" id = "Advanced">Advanced</div>
+        </div>
+        <script src = 'script.js'></script>
+    </main>
+</html>
