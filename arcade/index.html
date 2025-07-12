@@ -6,6 +6,8 @@
             
         }
         .button {
+            display: inline;
+            margin-left: 10px;
             width: 50px;
             height: 20px;
             text-align: center;
@@ -22,15 +24,21 @@
             text-align: center;
             visibility: hidden;
         }
+        #Pong-Start-Button {
+            visibility: hidden;
+        }
     </style>
     <main>
         <div class = "Button" id = "Pong-Button">Pong</div>
+        <div class = "Button" id = "Pacman-Button">Pacman</div>
+        <div class = "Button" id = "Space-Invaders-Button">Space Invaders</div>
         <div class = "ArcadeCanvas"><canvas id = "Canvas" width = 900px height = 600px></canvas></div>
         <div id = "Mode-Selection">
-            <div class = "Button Mode-Button" id = "Beginner">Beginner</div>
-            <div class = "Button Mode-Button" id = "Intermediate">Intermediate</div>
-            <div class = "Button Mode-Button" id = "Advanced">Advanced</div>
+            <div class = "Button In-Screen-Button Mode-Button" id = "Beginner">Beginner</div>
+            <div class = "Button In-Screen-Button Mode-Button" id = "Intermediate">Intermediate</div>
+            <div class = "Button In-Screen-Button Mode-Button" id = "Advanced">Advanced</div>
         </div>
+        <div class = "In-Screen-Button Button" id = "Pong-Start-Button">Start</div>
         <script src = 'script.js'></script>
     </main>
 </html>
