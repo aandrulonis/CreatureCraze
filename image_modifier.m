@@ -61,8 +61,41 @@ function img = wash(img,col_avg,lighten)
     img=cat(3,uint8(r),uint8(g),uint8(b));
 end
 
-% img=pixelate(15, "monkey.png");
+function img = invert(img)
+    img = cat(3,uint8(255-int32(img(:,:,1))),...
+                uint8(255-int32(img(:,:,2))),...
+                uint8(255-int32(img(:,:,3))));
+end
+
+function img = x_flip(img)
+    img=img(:,end:-1:1,:);
+end
+
+function write_pixel_data(pix_size, img, background_col, json_name)
+    [h, w, ~] = size(img);
+    h_ind = (1:h)-mod(1:h,pix_size);
+    h_ind(h_ind == 0) = 1;
+    w_ind = (1:w)-mod(1:w,pix_size);
+    w_ind(w_ind == 0) = 1;
+    objs = [];
+    for y = unique(h_ind)
+        height = sum(y==h_ind);
+        for x=unique(w_ind)
+            if (img(y,x,:)~=uint8(background_col))
+                objs = [objs struct('h',height,'w',sum(x==w_ind),'x',x,'y',y,'col',struct('r',img(y,x,1),'g',img(y,x,2),'b',img(y,x,3)))];
+            end
+        end
+    end
+    str = jsonencode(struct('h',h,'w',w,'pixels',objs),PrettyPrint=true);
+    f = fopen([json_name '.json'],'w');
+    fprintf(f,'%s',str);
+    fclose(f);
+end
+
+% img = imread("./arcade/images/pong/backgroundImg.jpg");
+% write_pixel_data(20,img,img(1,1,:),'shield_pixels')
+% img = x_flip(img);
+img=pixelate(10, "./jellyfish.jpg");
 % img=rotate(img,40,[0,0,0]);
-img=imread('./arcade/images/space_invaders/monkey_transparent.png');
-img=wash(img,uint8([52, 229, 235]),1.5);
-transparent(img,img(1,1,:),"monkey_dying");
+img=wash(img,uint8([255,127,80]),.8);
+transparent(img,img(1,1,:),"orange_jellyfish");

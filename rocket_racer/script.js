@@ -63,7 +63,7 @@ class Rocket {
         this.groundVisible = true;
         this.time = 0;
         this.vertSpeed = 0;
-        this.fuelFlow = 40;
+        this.fuelFlow = 0;
         this.altitude = 0;
         this.fuelMass = 4e3;
         this.mass = 4.2e3 + this.fuelMass;
@@ -77,7 +77,7 @@ class Rocket {
         ctx.font = `${this.backgroundWidth/35}px Arial`;
         ctx.fillStyle = "rgb(50,0,0)";          
         this.flameDown = false;
-        this.flameStretch = 1;
+        this.flameStretch = 0;
         ctx.strokeStyle = Rocket.borderColor
         this.objStretch = .5*(Math.random()+.5);
         this.objX = null;
@@ -86,7 +86,7 @@ class Rocket {
         this.rocketWidth = this.backgroundWidth / 3;
         this.rocketHeight = this.height / 3;
         this.flameWidth = this.backgroundWidth / 3;
-        this.flameHeight = this.flameStretch * this.height / 5;
+        this.flameHeight = 0;
         this.laserWidth = this.backgroundWidth;
         this.laserHeight = this.height / 2;
         this.rocketVX = 0;
@@ -103,6 +103,14 @@ class Rocket {
             obst.vx = 0,
             obst.dead = false;
         });
+    }
+
+    blastoff() {
+        this.fuelFlow = 40;          
+        this.flameStretch = 1;
+        this.flameHeight = this.flameStretch * this.height / 5;
+        document.addEventListener('keydown', this.keyDown.bind(this))
+        document.addEventListener('keyup', this.keyUp.bind(this));
     }
     
     updateAirProps() {
@@ -343,7 +351,6 @@ class Rocket {
                 this.laser = false;
         }
     }
-
     update() {
         if (this.altitude <= 0 && this.vertSpeed < -.01){
             this.acc = 0;
@@ -353,19 +360,6 @@ class Rocket {
         this.updateAirProps();
         this.updateAcc();
         this.updateAtmosphereLayer();
-        this.drawSky();
-        if (this.laser) {
-            this.drawLaser();
-        }
-        this.drawBackgroundObject();
-        this.drawRocket();
-        if (this.altitude > 15) {
-            this.drawObstacles();
-        }
-        
-        this.drawLabel();
-        this.drawBorder();
-        
         this.time += Rocket.dt;
         this.altitude += Rocket.dt * this.vertSpeed;
         this.rocketX += Rocket.dt * this.rocketVX
@@ -383,40 +377,34 @@ class Rocket {
          }
         this.mass -= this.fuelFlow * Rocket.dt;
         this.fuelFlow += Rocket.dt * this.fuelFlowInc;
-        if (this.fuelFlow > 40) { this.fuelFlow = 40; }
-        if (this.fuelFlow < 0) { this.fuelFlow = 0; }
-
+        if (this.fuelFlow > 40) this.fuelFlow = 40;
+        if (this.fuelFlow < 0) this.fuelFlow = 0;
         this.inSpace = this.altitude > Rocket.spaceAltitude;
         return !this.inSpace;
     }
+    draw() {
+        this.drawSky();
+        if (this.laser) this.drawLaser();
+        this.drawBackgroundObject();
+        this.drawRocket();
+        if (this.altitude > 15) this.drawObstacles();
+        this.drawLabel();
+        this.drawBorder();
+    }
 }
 
-const canvas = document.querySelector(".RocketCanvas");
-const width = (canvas.width = window.innerWidth);
-const height = (canvas.height = window.innerWidth*.75);
-const startButton = document.getElementById('Start-Button');
-const ctx = canvas.getContext("2d");
-const lineWidth = 2;
-const dTheta = Math.PI / 120;
-const dRocketPos = width / 200;
-const tieImage = new Image();
-tieImage.src = 'images/tieimage.jpg';
-const startBackgroundImage = new Image();
-startBackgroundImage.src = 'images/startBackgroundImage.jpg';
-const rotateAngle = Math.atan(height/width);
-const centerDist = .5 * Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
-const titleFont = new FontFace('Title-Font', 'url(fonts/SpaceCrusadersItalic-ZV1Zx.ttf)');
-titleFont.load().then(function(font){
-  document.fonts.add(font);
-});
+function startup(startBackgroundImage, startButton) {
+    ctx.drawImage(startBackgroundImage, 0, 0, width, height);
+    ctx.font = `${width/5}px Title-Font`;
+    ctx.strokeText("Rocket", width/100, width/4.5);
+    ctx.strokeText("Racers", width/100, width/2.5);
+    return new Promise((resolve) => startButton.addEventListener('click',()=>{
+        startButton.style.visibility = 'Hidden';
+        resolve();
+    }, { once: true }));
+}
 
-zoomer1 = new Rocket("Player 1", width/2, 0, height, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'usflag.png');
-zoomer2 = new Rocket("Player 2", width/2, width/2, height, 'w', 's', 'a', 'd', 'x', 'spainflag.webp');
-
-async function startupFunc () {
-    const countdownNum = document.getElementById('Countdown');
-    startButton.style.visibility = 'Hidden';
-    originalData = Date.now();
+async function countdown (countdownNum) {
     resolveAfter = (sec) => {
         return new Promise((resolve) => {
             setTimeout(() => {
@@ -438,19 +426,33 @@ async function startupFunc () {
     gameRunning = true;
 };
 
-document.addEventListener('keydown', zoomer1.keyDown.bind(zoomer1))
-document.addEventListener('keydown', zoomer2.keyDown.bind(zoomer2))
-document.addEventListener('keyup', zoomer1.keyUp.bind(zoomer1));
-document.addEventListener('keyup', zoomer2.keyUp.bind(zoomer2));
-startButton.addEventListener('click', startupFunc, { once: true });
 
-
-startRunning = true;
-gameRunning = false;
-arcAnimationRunning = false;
-rocketAnimationRunning = false;
 theta = -Math.PI;
 rocketPos = 2 * centerDist;
+
+
+async function main(startDate, frameDT, rockets) {
+    let gameRunning = true;
+    const winners = [];
+    rockets.forEach((rocket) => {
+        rocket.draw();
+        if (!rocket.update()) {
+            gameRunning = false;
+            winners.push(rocket);
+        }
+    });
+    if (!gameRunning) return winners;
+    await wait(startDate, frameDT);
+    requestAnimationFrame(main);
+}
+
+async function end(winner, tieImage) {
+    ctx.font = "bold 30px serif";
+    backgroundImage = winner.length == 0 ? winner[0].flagImage : tieImage;
+    endText = winner ? `${winner.name} wins after ${winner.time.toFixed(0)} seconds!` : "Tie!!";
+    await rocketAnimation(frameDT, endText, backgroundImg, winner.);
+    await arcAnimation(frameDT, endText, backgroundImg);
+}
 
 // TODO : make the rockets at the bottom of the screens, fix graphics alignments (including lasers),
 // make it no more scrolling
@@ -462,36 +464,56 @@ rocketPos = 2 * centerDist;
 // fix the font size
 // make start screen prettier
 
-function loop() {
-    if (startRunning) {
-        ctx.drawImage(startBackgroundImage, 0, 0, width, height);
-        ctx.font = `${width/5}px Title-Font`;
-        ctx.strokeText("Rocket", width/100, width/4.5);
-        ctx.strokeText("Racers", width/100, width/2.5);
-    }
-    else if (gameRunning) {
-        gameRunning = zoomer1.update() && zoomer2.update();
-        if (!gameRunning) {
-            ctx.font = "bold 30px serif";
-            arcAnimationRunning = true;
-            winner = (zoomer1.inSpace && zoomer2.inSpace) ? null
-                 : (zoomer1.inSpace ? zoomer1 : zoomer2);
-            endText = winner ? `${winner.name} wins after ${winner.time.toFixed(0)} seconds!` : "Tie!!";
-            backgroundImage = winner ? winner.flagImage : tieImage;
-        }
-    }
-    else if (arcAnimationRunning) {
-        arcAnimationRunning = arcAnimation(endText, backgroundImage);
-        if (!arcAnimationRunning) rocketAnimationRunning = true;
-    }
-    else if (rocketAnimationRunning) rocketAnimationRunning = rocketAnimation(endText, backgroundImage, winner.rocketImage);
-    else if (!startRunning) return;
-    requestAnimationFrame(loop);
+async function setupHTMLElements() {
+    const startBackgroundImage = new Image();
+    startBackgroundImage.src = 'images/startBackgroundImage.jpg';
+    const tieImage = new Image();
+    tieImage.src = 'images/tieimage.jpg';
+    const startButton = document.getElementById('Start-Button');
+    const playAgainButton = document.getElementById('Play-Again-Button');
+    const countdownNum = document.getElementById('Countdown');
+        
+    const canvas = document.querySelector(".RocketCanvas");
+    const canvasWidth = (canvas.width = window.innerWidth);
+    const canvasHeight = (canvas.height = window.innerWidth*.75);
+    const ctx = canvas.getContext("2d");
+    const titleFont = new FontFace('Title-Font', 'url(fonts/SpaceCrusadersItalic-ZV1Zx.ttf)');
+    await titleFont.load().then(function(font){
+        document.fonts.add(font);
+    });
+    return { startBackgroundImage: startBackgroundImage, tieImage: tieImage, 
+             startButton: startButton, playAgainButton: playAgainButton, countdownNum: countdownNum, 
+             canvas: canvas, canvasWidth: canvasWidth, canvasHeight: canvasHeight, ctx: ctx };
 }
 
-function arcAnimation(endText, backgroundImage) {
+    const lineWidth = 2;
+    const dTheta = Math.PI / 120;
+    const dRocketPos = width / 200;
+    const rotateAngle = Math.atan(height/width);
+    const centerDist = .5 * Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
+
+function playAgain(playAgainButton) {
+    playAgainButton.style.visible = 'Visible';
+    return new Promise((resolve) => {
+        playAgainButton.addEventListener('click', () => resolve());
+    });
+}
+
+
+async function run(frameDT, htmlElements) {
+    const zoomer1 = new Rocket("Player 1", width/2, 0, height, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'usflag.png');
+    const zoomer2 = new Rocket("Player 2", width/2, width/2, height, 'w', 's', 'a', 'd', 'x', 'spainflag.webp');
+    await startup(htmlElements.startBackgroundImage, htmlElements.startButton);
+    await countdown(htmlElements.countdownNum);
+    const winner = await main(Date.now(), frameDT, [zoomer1, zoomer2]);
+    await end(frameDT, htmlElements.tieImage);
+    await playAgain(htmlElements.playAgainButton);
+    run(frameDT, htmlElements)
+}
+
+async function arcAnimation(endText, backgroundImg) {
   //  ctx.clearRect(0, 0, width, height);
-    ctx.drawImage(backgroundImage, 0, 0, width, height);
+    ctx.drawImage(backgroundImg, 0, 0, width, height);
     ctx.beginPath();
     ctx.arc(width/2, 5*height/8, width/4, -Math.PI, theta += dTheta);
     ctx.fillStyle = "white";
@@ -500,17 +522,18 @@ function arcAnimation(endText, backgroundImage) {
     return theta < 0;
 }
 
-function rocketAnimation(endText, backgroundImage, rocketImage) {
-    ctx.drawImage(backgroundImage, 0, 0, width, height);
+async function rocketAnimation(endText, backgroundImg, rocketImg) {
+    ctx.drawImage(backgroundImg, 0, 0, width, height);
     ctx.arc(width/2, 5*height/8, width/4, -Math.PI, 0);
     ctx.fillStyle = "white";
     ctx.fill();
     ctx.strokeText(endText, width/5, height/2);
     ctx.rotate(rotateAngle);
-    ctx.drawImage(rocketImage, rocketPos-=dRocketPos, 0, width / 8, height / 3);
+    ctx.drawImage(rocketImg, rocketPos-=dRocketPos, 0, width / 8, height / 3);
     ctx.rotate(-rotateAngle);
     return rocketPos > centerDist;
 
 }
 
-loop();
+const htmlElements = setupHTMLElements();
+run(htmlElements);

@@ -5,7 +5,7 @@ using namespace std;
 template <typename T> class SongProp {
     public:
         T value;
-        T get_value() { return T(value); }
+        T get_value() { return value; }
         SongProp (T val) : value(val) {}
         static T breed_props(T prop1, T prop2, double mutation_probability, int &seed) {
             double rand = (get_rand(seed) % 100) / 100.0;
@@ -23,3 +23,5 @@ class NoteProp: SongProp<Note> {
         NoteProp(Note n) : SongProp<Note>(n) {}
         static NoteProp get_random(int &seed) { return NoteProp(Note::get_random(seed)); }
 };
+
+class TimeSigProp : SongProp<

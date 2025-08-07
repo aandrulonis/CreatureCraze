@@ -164,10 +164,3 @@ class Island {
             return this;
         }
 };
-
-
-
-int main(int arg_length, char* args) {
-
-
-}

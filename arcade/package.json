@@ -1,0 +1,22 @@
+{
+  "name": "arcade",
+  "version": "1.0.0",
+  "description": "mini-games",
+  "main": "server.js",
+  "entry point": "server.cjs",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.cjs"
+  },
+  "author": "Alexis Andrulonis",
+  "license": "ISC",
+  "dependencies": {
+    "canvas": "^3.1.2",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "fs": "^0.0.1-security",
+    "jsdom": "^26.1.0",
+    "ogl": "^1.0.11"
+  }
+}

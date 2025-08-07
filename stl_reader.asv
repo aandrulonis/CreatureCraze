@@ -1,0 +1,12 @@
+function write_stl_to_json(filename)
+    TR = stlread([filename '.stl']);
+    arr = TR.Points(TR.ConnectivityList);
+    arr_t = arr';
+    arr = arr_t(:)';
+    str = jsonencode(struct('triangles',arr./,PrettyPrint=true);
+    f = fopen([filename '.json'],'w');
+    fprintf(f,'%s',str);
+    fclose(f);
+end
+
+write_stl_to_json('bridge_tester');
