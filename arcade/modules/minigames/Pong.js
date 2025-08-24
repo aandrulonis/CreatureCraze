@@ -1,4 +1,4 @@
-var PI, outcomes, modes, Vec2, canvas, ctx, backgroundWidth, backgroundHeight;
+var frameDT, PI, outcomes, modes, Vec2, canvas, ctx, backgroundWidth, backgroundHeight;
 
 class PongProps {
     static START_BUTTON = document.getElementById('Pong-Start-Button');
@@ -61,7 +61,7 @@ class PongProps {
         this.unicornImg.src = PongProps.unicornRightImgSrc;
         
         PongProps.barY = backgroundHeight * 3/4;
-        PongProps.ballOmega = PI/15; // radians per second
+        PongProps.ballOmega = PI/20; // radians per second
         PongProps.scoreWidth = backgroundWidth / 10;
         PongProps.meteroidImg = new Image();
         PongProps.cityImg = new Image();
@@ -78,7 +78,8 @@ class PongProps {
     }
 }
 
-async function runPong(utils) {
+async function runPong(dt, utils) {
+    frameDT = dt;
     canvas = document.getElementById("Canvas");
     ctx = canvas.getContext("2d");
     backgroundWidth = canvas.width;

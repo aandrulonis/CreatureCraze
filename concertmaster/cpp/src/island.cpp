@@ -101,6 +101,7 @@ class Island {
         ~Island() {
             delete[] population;
         }
+        Song* get_best_song() { return best_song; }
         Island* evolve(int max_generations, int conv_tolerance) {
             vector<int> fitness_vec;
             int total_fitness_score = 0;

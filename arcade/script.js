@@ -6,25 +6,46 @@ const modeButtons = document.getElementById("Mode-Selection");
 const beginnerButton = document.getElementById("Beginner");
 const intermediateButton = document.getElementById("Intermediate");
 const advancedButton = document.getElementById("Advanced");
-const frameDT = .2; // millisecond
+const frameDT = 5; // milliseconds
+
+function makeImage(src) {
+    const img = new Image();
+    img.src = src;
+    return img;
+}
 
 async function startup() {
     const utils = await import("./modules/utils.js");
     const { runPong } = await import("./modules/minigames/Pong.js");
   //  const { runPacman } = await import("./modules/minigames/Pacman.js");
     const { runSpaceInvaders } = await import("./modules/minigames/SpaceInvaders.js");
-    const { runMotorcycleRacer } = await import("./modules/minigames/MotorcycleRacer.js")
-    pongButton.addEventListener('click', ()=> {
-        runPong(utils);
+    const { runMotorcycleRacer } = await import("./modules/minigames/MotorcycleRacer.js");
+    
+    let jsonPromise;
+    await fetch("./json/stereo.json").then((response)=> {if (!response.ok) jsonPromise = null;  else jsonPromise = response.json(); });
+    if (!jsonPromise) return;
+    const pixelsObj = await jsonPromise;
+    const spaceInvaderImports = {
+        pixels: pixelsObj.pixels,
+        images: {
+            hero: makeImage('./images/space_invaders/monkey_transparent.png'),
+            dyingHero: makeImage('./images/space_invaders/monkey_dying_transparent.png'),
+            enemy: makeImage('./images/space_invaders/alien_transparent.png'),
+            arrow: makeImage('./images/space_invaders/arrow_transparent.png'),
+            heart: makeImage('./images/space_invaders/heart_transparent.png')
+        }
+    }
+    pongButton.addEventListener('click', () => {
+        runPong(frameDT, utils);
     });
     // pacmanButton.addEventListener('click', () => {
     //     runPacman(utils);
     // });
-    spaceInvadersButton.addEventListener('click',() => {
-        runSpaceInvaders(utils);
+    spaceInvadersButton.addEventListener('click', () => {
+        runSpaceInvaders(frameDT, utils, spaceInvaderImports);
     });
-    motorcycleRacerButton.addEventListener('click',() => {
-        runMotorcycleRacer(utils);
+    motorcycleRacerButton.addEventListener('click', () => {
+        runMotorcycleRacer(frameDT, utils);
     })
 }
 

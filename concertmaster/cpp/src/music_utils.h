@@ -3,7 +3,6 @@
 
 using namespace std;
 
-
 static const int CLICKS_PER_BEAT = 24; // number of MIDI clocks in a tick
 static const float MINUTES_TO_MICROSECONDS = 60 * 1e6;
 
@@ -18,7 +17,7 @@ struct Note {
     int octave;
     DYNAMICS dynamics;
     double num_beats;
-    int value;
+    int value = octave * 12 + pitch;
     static inline Note get_random(int &seed);
 };
 

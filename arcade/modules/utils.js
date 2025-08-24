@@ -12,6 +12,14 @@ const modes = {
     ADVANCED: "Advanced"
 };
 
+const directions = {
+    UP: "Top",
+    DOWN: "Bottom",
+    LEFT: "Left",
+    RIGHT: "Right",
+    NONE: "None"
+};
+
 class Color {
     static RED = new Color(255,0,0);
     static ORANGE = new Color(255, 165, 0);
@@ -123,4 +131,17 @@ class Vec2 {
     }
 }
 
-export { PI, outcomes, modes, Color, Vec2, Vec3 };
+class RectangularDomain {
+    constructor(minX, minY, maxX, maxY) {
+        this.minX = minX;
+        this.minY = minY;
+        this.maxX = maxX;
+        this.maxY = maxY;
+    }
+    inDomain(x, y) {
+        return x > this.minX && x < this.maxX
+               && y > this.minY && y < this.maxY;
+    }
+}
+
+export { PI, outcomes, modes, directions, Color, Vec2, Vec3, RectangularDomain };

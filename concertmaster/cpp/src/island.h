@@ -14,6 +14,7 @@ class Island {
     public:
         Island (int population_size);
         ~Island();
+        Song* get_best_song();
         Island* evolve(int max_generations, int conv_tolerance);
 };
 

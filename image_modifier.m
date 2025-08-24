@@ -92,10 +92,10 @@ function write_pixel_data(pix_size, img, background_col, json_name)
     fclose(f);
 end
 
-% img = imread("./arcade/images/pong/backgroundImg.jpg");
-% write_pixel_data(20,img,img(1,1,:),'shield_pixels')
+img = imread("./stereo.jpg");
 % img = x_flip(img);
-img=pixelate(10, "./jellyfish.jpg");
+% img=pixelate(10, "./stereo.jpg");
+write_pixel_data(20,img,[255,255,255],'stereo')
 % img=rotate(img,40,[0,0,0]);
-img=wash(img,uint8([255,127,80]),.8);
-transparent(img,img(1,1,:),"orange_jellyfish");
+% img=wash(img,uint8([255,127,80]),.8);
+% transparent(img,img(1,1,:),"orange_jellyfish");

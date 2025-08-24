@@ -73,7 +73,7 @@ abstract class Shape3D {
      */
     private normalDistribution(normal: Vec3, halfway: Vec3) : number {
         const denom = PI * (normal.dot(halfway)**2*(this.surfaceRoughness**2-1)+1)**2;
-        return surfaceRoughness**2 / denom;
+        return this.surfaceRoughness**2 / denom;
     }
 
     private selfShadowing(normal: Vec3, v: Vec3, l: Vec3) {
