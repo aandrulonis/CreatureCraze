@@ -21,11 +21,12 @@ class Rocket {
     static dt = 5e-2;
     static borderColor = "rgb(0, 0, 0)";
     
-    constructor(name, backgroundWidth, x0, height, userUp, userDown, userLeft, userRight, userKill, flagImageSrc) {
+    constructor(name, backgroundWidth, backgroundHeight, x0, height, userUp, userDown, userLeft, userRight, userKill, flagImageSrc) {
         this.name = name;
         this.backgroundWidth = backgroundWidth;
+        this.backgroundHeight = backgroundHeight;
         this.x0 = x0;
-        this.height = height;
+        this.backgroundHeight = backgroundHeight;
         this.userUp = userUp;
         this.userDown = userDown;
         this.userLeft = userLeft;
@@ -48,7 +49,7 @@ class Rocket {
         this.cloudImage.src = 'images/cloud.png';
         this.launcherImage.src = 'images/launchpad.webp';
         this.grassImage.src = 'images/grass.webp';
-        this.laserImage.src = 'images/laser.png'
+        this.laserImage.src = 'images/laser.png';
         this.balloonImage.src = 'images/balloon.png';
         this.flagImage.src = `images/${flagImageSrc}`;
         this.obstacleImageSources = [];
@@ -70,25 +71,25 @@ class Rocket {
         this.rhoAir, this.pAir; // initialized in methods
 
         // setting initial graphics properties
-        this.rocketY = this.height/3;
+        this.rocketY = this.backgroundHeight/3;
         this.metersToPixels = this.backgroundWidth/16;
-        ctx.lineWidth = lineWidth;
+        this.lineWidth = this.backgroundWidth/50;
         this.rocketX = x0+7*this.backgroundWidth/16;
-        ctx.font = `${this.backgroundWidth/35}px Arial`;
         ctx.fillStyle = "rgb(50,0,0)";          
         this.flameDown = false;
         this.flameStretch = 0;
         ctx.strokeStyle = Rocket.borderColor
         this.objStretch = .5*(Math.random()+.5);
         this.objX = null;
+        this.objImage = this.cloudImage;
         // this.objX = x0+Math.random()*(this.backgroundWidth-this.objImage.naturalWidth*.75);
         // this.objY = -this.objImage.naturalHeight*.75;
         this.rocketWidth = this.backgroundWidth / 3;
-        this.rocketHeight = this.height / 3;
+        this.rocketHeight = this.backgroundHeight / 3;
         this.flameWidth = this.backgroundWidth / 3;
         this.flameHeight = 0;
         this.laserWidth = this.backgroundWidth;
-        this.laserHeight = this.height / 2;
+        this.laserHeight = this.backgroundHeight / 2;
         this.rocketVX = 0;
         this.fuelFlowInc = 0;
         this.obstacleVY = 0;
@@ -106,9 +107,10 @@ class Rocket {
     }
 
     blastoff() {
+        ctx.font = `${this.backgroundWidth/35}px Arial`;
         this.fuelFlow = 40;          
         this.flameStretch = 1;
-        this.flameHeight = this.flameStretch * this.height / 5;
+        this.flameHeight = this.flameStretch * this.backgroundHeight / 5;
         document.addEventListener('keydown', this.keyDown.bind(this))
         document.addEventListener('keyup', this.keyUp.bind(this));
     }
@@ -148,11 +150,11 @@ class Rocket {
             this.obstacleImageSources = this.birdImageSources;
             this.obstacleVY = 20;
             this.objWidth = this.backgroundWidth;
-            this.objHeight = this.height;
+            this.objHeight = this.backgroundHeight;
             this.objVY = 0;
             this.obstacles.forEach((obst) => {
                 obst.width = this.backgroundWidth / 5;
-                obst.height = this.height / 5;
+                obst.height = this.backgroundHeight / 5;
             });
         } else if (this.altitude >= 11_000 && this.altitude < 25_000) {
             this.atmosphereLayer = "Lower Stratosphere";
@@ -160,11 +162,11 @@ class Rocket {
             this.obstacleImageSources = this.planeImageSources;
             this.obstacleVY = 25;
             this.objWidth = this.backgroundWidth;
-            this.objHeight = this.height;
+            this.objHeight = this.backgroundHeight;
             this.objVY = this.vertSpeed - 10;
             this.obstacles.forEach((obst) => {
                 obst.width = this.backgroundWidth / 5;
-                obst.height = this.height / 5;
+                obst.height = this.backgroundHeight / 5;
             });
         } else {
             this.atmosphereLayer = "Upper Stratosphere";
@@ -172,11 +174,11 @@ class Rocket {
             this.obstacleImageSources = this.meteorImageSources;
             this.obstacleVY = 30;
             this.objWidth = this.backgroundWidth;
-            this.objHeight = this.height;
+            this.objHeight = this.backgroundHeight;
             this.objVY = this.vertSpeed - 15;
             this.obstacles.forEach((obst) => {
                 obst.width = this.backgroundWidth / 5;
-                obst.height = this.height / 5;
+                obst.height = this.backgroundHeight / 5;
             });
         }
     }
@@ -184,11 +186,11 @@ class Rocket {
     drawSky() {
         this.backgroundColor = `rgb(${Rocket.initBackgroundRed*(1-this.altitude/100e3)}, ${Rocket.initBackgroundGreen*(1-this.altitude/100e3)}, ${Rocket.initBackgroundBlue*(1-this.altitude/100e3)})`;
         ctx.fillStyle=this.backgroundColor;
-        ctx.fillRect(this.x0,0,this.backgroundWidth,this.height);
-        this.groundVisible = this.altitude*this.metersToPixels < this.height;
+        ctx.fillRect(this.x0,0,this.backgroundWidth,this.backgroundHeight);
+        this.groundVisible = this.altitude*this.metersToPixels < this.backgroundHeight;
         if (this.groundVisible) {
-            ctx.drawImage(this.grassImage,this.x0,this.height/2+this.altitude*this.metersToPixels,this.backgroundWidth,this.grassImage.naturalHeight);
-            ctx.drawImage(this.launcherImage,this.x0+this.backgroundWidth/3,this.height/6+this.altitude*this.metersToPixels);
+            ctx.drawImage(this.grassImage,this.x0,this.backgroundHeight/2+this.altitude*this.metersToPixels,this.backgroundWidth,this.grassImage.naturalHeight);
+            ctx.drawImage(this.launcherImage,this.x0+this.backgroundWidth/3,this.backgroundHeight/6+this.altitude*this.metersToPixels);
         }
     }
 
@@ -196,14 +198,14 @@ class Rocket {
         this.objY += (this.vertSpeed - this.objVY)*this.metersToPixels*Rocket.dt;
 
         // Create new background object if the current one is out of view
-        if (this.objX == null || this.vertSpeed > 0 && this.objY > this.height){
+        if (this.objX == null || this.vertSpeed > 0 && this.objY > this.backgroundHeight){
             this.objStretch = .5*(Math.random()+.5);
             this.objX = this.x0 + Math.random() * (this.backgroundWidth-this.objWidth*this.objStretch);
             this.objY = -this.objImage.naturalHeight*this.objStretch;
         } else if (this.objX == null || this.vertSpeed < 0 && this.objY < -this.objWidth*this.objStretch) {
             this.objStretch = .5*(Math.random()+.5);
             this.objX = this.x0 + Math.random() * (this.backgroundWidth-this.objWidth*this.objStretch);
-            this.objY = this.height;
+            this.objY = this.backgroundHeight;
         }
 
         ctx.drawImage(this.objImage, this.objX, this.objY, this.objWidth*this.objStretch,this.objHeight*this.objStretch);  
@@ -212,9 +214,9 @@ class Rocket {
     drawObstacles() {
         this.obstacles.forEach((obst) => {
             // Create new obstacle if current one is out of view
-            if (obst.x < this.x0 || obst.x > this.x0 + this.backgroundWidth || obst.y > this.height) {
+            if (obst.x < this.x0 || obst.x > this.x0 + this.backgroundWidth || obst.y > this.backgroundHeight) {
                 obst.image.src = this.obstacleImageSources[Math.floor(Math.random()*this.obstacleImageSources.length)];
-                obst.y = this.height * Math.random() * .2;
+                obst.y = this.backgroundHeight * Math.random() * .2;
                 if (this.atmosphereLayer != "Upper Stratosphere") {
                     const moveRight = Math.floor(Math.random()*2) == 0;
                     obst.vx = (Math.random() * .5 + .5) * (moveRight ? 1 : -1) * this.rocketY/1e2;
@@ -265,7 +267,7 @@ class Rocket {
         else
             this.flameStretch += .02;
         ctx.drawImage(this.rocketImage,this.rocketX,this.rocketY,this.rocketWidth,this.rocketHeight);
-        this.flameHeight = this.flameStretch * this.height / 5;
+        this.flameHeight = this.flameStretch * this.backgroundHeight / 5;
         
         if (this.fuelFlow > .01) {
             ctx.translate(this.rocketX+this.rocketWidth/2,this.rocketY+this.rocketHeight);
@@ -278,39 +280,39 @@ class Rocket {
 
     drawLabel() {
         ctx.fillStyle = "white";
-        this.height = Math.abs(this.height);
+        this.backgroundHeight = Math.abs(this.backgroundHeight);
         if (this.vertSpeed == 0) this.vertSpeed = 0;
         if (this.acc == 0) this.acc = 0;
-        ctx.fillRect(this.x0,0,this.backgroundWidth,this.height/20);
-        ctx.fillRect(this.x0,19*this.height/20,this.backgroundWidth,this.height/20);
-        ctx.strokeText(`Fuel flow rate: ${this.fuelFlow.toFixed(1)} lbm/sec`,this.x0+2*this.backgroundWidth/3,31.5*this.height/32);
+        ctx.fillRect(this.x0,0,this.backgroundWidth,this.backgroundHeight/20);
+        ctx.fillRect(this.x0,19*this.backgroundHeight/20,this.backgroundWidth,this.backgroundHeight/20);
+        ctx.strokeText(`Fuel flow rate: ${this.fuelFlow.toFixed(1)} lbm/sec`,this.x0+2*this.backgroundWidth/3,31.5*this.backgroundHeight/32);
         ctx.strokeText(`Altitude: ${((Math.abs(this.altitude) < 5 ? 0 : this.altitude)/1000).toFixed(2)} km, speed: `
                        + `${((Math.abs(this.vertSpeed) < 5 ? 0 : this.vertSpeed)/1000).toFixed(2)} km/s,`
                        + `acceleration ${(Math.abs(this.acc) < .5 ? 0 : this.acc).toFixed(1)} m/s^2`
                        + ` time: ${this.time.toFixed(0)} seconds`, 
-                       this.x0+this.backgroundWidth/50,this.height/32);
-        ctx.strokeText(`Atmospheric layer: ${this.atmosphereLayer}`,this.x0+this.backgroundWidth/50,31.5*this.height/32);
+                       this.x0+this.backgroundWidth/50,this.backgroundHeight/32);
+        ctx.strokeText(`Atmospheric layer: ${this.atmosphereLayer}`,this.x0+this.backgroundWidth/50,31.5*this.backgroundHeight/32);
 
         // Fuel bar
         ctx.fillStyle = "red";
-        ctx.fillRect(this.x0+this.backgroundWidth*7/16,this.height*30.75/32,this.backgroundWidth*(this.fuelMass/4e3)/5,this.height/40);
+        ctx.fillRect(this.x0+this.backgroundWidth*7/16,this.backgroundHeight*30.75/32,this.backgroundWidth*(this.fuelMass/4e3)/5,this.backgroundHeight/40);
         ctx.beginPath();
-        ctx.moveTo(this.x0+this.backgroundWidth*7/16,this.height*30.75/32);
-        ctx.lineTo(this.x0+this.backgroundWidth*7/16+this.backgroundWidth/5,this.height*30.75/32);
-        ctx.lineTo(this.x0+this.backgroundWidth*7/16+this.backgroundWidth/5,this.height*30.75/32+this.backgroundWidth/25);
-        ctx.lineTo(this.x0+this.backgroundWidth*7/16,this.height*30.75/32+this.backgroundWidth/25);
-        ctx.lineTo(this.x0+this.backgroundWidth*7/16,this.height*30.75/32);
+        ctx.moveTo(this.x0+this.backgroundWidth*7/16,this.backgroundHeight*30.75/32);
+        ctx.lineTo(this.x0+this.backgroundWidth*7/16+this.backgroundWidth/5,this.backgroundHeight*30.75/32);
+        ctx.lineTo(this.x0+this.backgroundWidth*7/16+this.backgroundWidth/5,this.backgroundHeight*30.75/32+this.backgroundWidth/25);
+        ctx.lineTo(this.x0+this.backgroundWidth*7/16,this.backgroundHeight*30.75/32+this.backgroundWidth/25);
+        ctx.lineTo(this.x0+this.backgroundWidth*7/16,this.backgroundHeight*30.75/32);
         ctx.stroke();
 
     }
 
     drawBorder() {
         ctx.beginPath();
-        ctx.moveTo(this.x0+lineWidth/2,lineWidth/2);
-        ctx.lineTo(this.x0+this.backgroundWidth-lineWidth/2,lineWidth/2);
-        ctx.lineTo(this.x0+this.backgroundWidth-lineWidth/2,height-lineWidth/2);
-        ctx.lineTo(this.x0+lineWidth/2,height-lineWidth/2);
-        ctx.lineTo(this.x0+lineWidth/2,lineWidth/2);
+        ctx.moveTo(this.x0+this.lineWidth/2,this.lineWidth/2);
+        ctx.lineTo(this.x0+this.backgroundWidth-this.lineWidth/2,this.lineWidth/2);
+        ctx.lineTo(this.x0+this.backgroundWidth-this.lineWidth/2,this.backgroundHeight-this.lineWidth/2);
+        ctx.lineTo(this.x0+this.lineWidth/2,this.backgroundHeight-this.lineWidth/2);
+        ctx.lineTo(this.x0+this.lineWidth/2,this.lineWidth/2);
         ctx.stroke();
     }
 
@@ -393,7 +395,7 @@ class Rocket {
     }
 }
 
-function startup(startBackgroundImage, startButton) {
+function startup(startBackgroundImage, startButton, width, height) {
     ctx.drawImage(startBackgroundImage, 0, 0, width, height);
     ctx.font = `${width/5}px Title-Font`;
     ctx.strokeText("Rocket", width/100, width/4.5);
@@ -426,31 +428,37 @@ async function countdown (countdownNum) {
     gameRunning = true;
 };
 
-
-theta = -Math.PI;
-rocketPos = 2 * centerDist;
-
-
-async function main(startDate, frameDT, rockets) {
-    let gameRunning = true;
+function runGame(frameDT, rockets) {
+    let currFrame = 0;
+    const startTime = performance.now();
     const winners = [];
-    rockets.forEach((rocket) => {
-        rocket.draw();
-        if (!rocket.update()) {
-            gameRunning = false;
-            winners.push(rocket);
+    let gameRunning = true;
+    return new Promise((res) => {
+        requestAnimationFrame(animate);
+        async function animate() {
+            rockets.forEach((rocket) => {
+                rocket.draw();
+                if (!rocket.update()) {
+                    gameRunning = false;
+                    winners.push(rocket);
+                }
+            });
+            if (gameRunning) {
+                await new Promise((res)=>setTimeout(()=>res(), 
+                    Math.max(0,++currFrame*frameDT-(performance.now()-startTime))));
+                requestAnimationFrame(animate);
+            } else {
+                res(winners);
+            }
         }
-    });
-    if (!gameRunning) return winners;
-    await wait(startDate, frameDT);
-    requestAnimationFrame(main);
+    })
 }
 
-async function end(winner, tieImage) {
+async function end(frameDT, winners, tieImage) {
     ctx.font = "bold 30px serif";
-    backgroundImage = winner.length == 0 ? winner[0].flagImage : tieImage;
-    endText = winner ? `${winner.name} wins after ${winner.time.toFixed(0)} seconds!` : "Tie!!";
-    await rocketAnimation(frameDT, endText, backgroundImg, winner.);
+    backgroundImage = winners.length == 0 ? winners[0].flagImage : tieImage;
+    endText = winners ? `${winners[0].name} wins after ${winners[0].time.toFixed(0)} seconds!` : "Tie!!";
+    await rocketAnimation(frameDT, endText, backgroundImg, winners[0].rocketImage);
     await arcAnimation(frameDT, endText, backgroundImg);
 }
 
@@ -466,7 +474,7 @@ async function end(winner, tieImage) {
 
 async function setupHTMLElements() {
     const startBackgroundImage = new Image();
-    startBackgroundImage.src = 'images/startBackgroundImage.jpg';
+    startBackgroundImage.src = './images/startBackgroundImage.jpg';
     const tieImage = new Image();
     tieImage.src = 'images/tieimage.jpg';
     const startButton = document.getElementById('Start-Button');
@@ -476,21 +484,15 @@ async function setupHTMLElements() {
     const canvas = document.querySelector(".RocketCanvas");
     const canvasWidth = (canvas.width = window.innerWidth);
     const canvasHeight = (canvas.height = window.innerWidth*.75);
-    const ctx = canvas.getContext("2d");
+    ctx = canvas.getContext("2d");
     const titleFont = new FontFace('Title-Font', 'url(fonts/SpaceCrusadersItalic-ZV1Zx.ttf)');
     await titleFont.load().then(function(font){
         document.fonts.add(font);
     });
     return { startBackgroundImage: startBackgroundImage, tieImage: tieImage, 
              startButton: startButton, playAgainButton: playAgainButton, countdownNum: countdownNum, 
-             canvas: canvas, canvasWidth: canvasWidth, canvasHeight: canvasHeight, ctx: ctx };
+             canvas: canvas, canvasWidth: canvasWidth, canvasHeight: canvasHeight};
 }
-
-    const lineWidth = 2;
-    const dTheta = Math.PI / 120;
-    const dRocketPos = width / 200;
-    const rotateAngle = Math.atan(height/width);
-    const centerDist = .5 * Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
 
 function playAgain(playAgainButton) {
     playAgainButton.style.visible = 'Visible';
@@ -499,19 +501,27 @@ function playAgain(playAgainButton) {
     });
 }
 
-
 async function run(frameDT, htmlElements) {
-    const zoomer1 = new Rocket("Player 1", width/2, 0, height, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'usflag.png');
-    const zoomer2 = new Rocket("Player 2", width/2, width/2, height, 'w', 's', 'a', 'd', 'x', 'spainflag.webp');
-    await startup(htmlElements.startBackgroundImage, htmlElements.startButton);
+    const zoomer1 = new Rocket("Player 1", htmlElements.canvasWidth/2, htmlElements.canvasHeight, 0, htmlElements.canvasHeight, 
+                               'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'usflag.png');
+    const zoomer2 = new Rocket("Player 2", htmlElements.canvasWidth/2, htmlElements.canvasHeight, htmlElements.canvasWidth/2, htmlElements.canvasHeight, 
+                               'w', 's', 'a', 'd', 'x', 'spainflag.webp');
+    resetFrame();
+    await startup(htmlElements.startBackgroundImage, htmlElements.startButton, htmlElements.canvasWidth, htmlElements.canvasHeight);
+    resetFrame();
     await countdown(htmlElements.countdownNum);
-    const winner = await main(Date.now(), frameDT, [zoomer1, zoomer2]);
-    await end(frameDT, htmlElements.tieImage);
+    zoomer1.blastoff();
+    zoomer2.blastoff();
+    resetFrame();
+    const winners = await runGame(frameDT, [zoomer1, zoomer2]);
+    resetFrame();
+    await end(frameDT, winners, htmlElements.tieImage);
+    resetFrame();
     await playAgain(htmlElements.playAgainButton);
     run(frameDT, htmlElements)
 }
 
-async function arcAnimation(endText, backgroundImg) {
+async function arcAnimation(frameDT, endText, backgroundImg) {
   //  ctx.clearRect(0, 0, width, height);
     ctx.drawImage(backgroundImg, 0, 0, width, height);
     ctx.beginPath();
@@ -519,10 +529,18 @@ async function arcAnimation(endText, backgroundImg) {
     ctx.fillStyle = "white";
     ctx.fill();
     ctx.strokeText(endText, width/5, height/2);
-    return theta < 0;
+    if (theta >= 0) {
+        await new Promise ((res)=>setTimeout(()=>{
+            arcAnimation(frameDT,endText,backgroundImg);
+            res();
+        }, Math.max(0,currFrame*frameDT-(performance.now()-startTime))));
+    }
+    else {
+        return;
+    }
 }
 
-async function rocketAnimation(endText, backgroundImg, rocketImg) {
+async function rocketAnimation(frameDT, endText, backgroundImg, rocketImg) {
     ctx.drawImage(backgroundImg, 0, 0, width, height);
     ctx.arc(width/2, 5*height/8, width/4, -Math.PI, 0);
     ctx.fillStyle = "white";
@@ -532,8 +550,18 @@ async function rocketAnimation(endText, backgroundImg, rocketImg) {
     ctx.drawImage(rocketImg, rocketPos-=dRocketPos, 0, width / 8, height / 3);
     ctx.rotate(-rotateAngle);
     return rocketPos > centerDist;
-
 }
 
-const htmlElements = setupHTMLElements();
-run(htmlElements);
+function resetFrame() {
+    currFrame = 0;
+    startTime = performance.now();
+}
+
+async function main() {
+    const htmlElements = await setupHTMLElements();
+    const frameDT = 2; // milliseconds
+    run(frameDT, htmlElements);
+}
+
+var startTime, currFrame, ctx;
+main();
