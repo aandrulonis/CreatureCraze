@@ -61,7 +61,7 @@ class PongProps {
         this.unicornImg.src = PongProps.unicornRightImgSrc;
         
         PongProps.barY = backgroundHeight * 3/4;
-        PongProps.ballOmega = PI/20; // radians per second
+        PongProps.ballOmega = PI/200; // radians per millisecond
         PongProps.scoreWidth = backgroundWidth / 10;
         PongProps.meteroidImg = new Image();
         PongProps.cityImg = new Image();
