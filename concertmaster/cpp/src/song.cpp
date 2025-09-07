@@ -8,10 +8,11 @@
 #include <music_utils.h>
 #include <song_props.h>
 #include <song.h>
+#include <island.h>
 
 using namespace std;
 
-Song::Song(char* name, int name_length, vector<Note> notes, int tempo, int time_sig_num, int time_sign_denom_pow) {
+Song::Song(char* name, int name_length, vector<NoteStruct> notes, int tempo, int time_sig_num, int time_sign_denom_pow) {
     this -> name = name;
     this -> name_length = name_length;
     this -> notes = notes;
@@ -20,51 +21,90 @@ Song::Song(char* name, int name_length, vector<Note> notes, int tempo, int time_
     this -> time_sig_denom_pow = time_sig_denom_pow;
 }
 
-Song::Song() { 
+Song::Song(vector<NoteStruct> notes) { 
     // Only used for breeding songs
-    this -> notes = std::vector<Note>();
+    this -> notes = notes;
 } 
+
+Song::Song(Song &other, std::string name, TempoStruct tempoStruct, TimeSignatureStruct timeSignatureStruct,
+           KeyStruct keyStruct, ModeStruct modeStruct) {
+    Song song(other);
+    other.name = name.data();
+    other.name_length = name.size();
+    other.tempo = tempoStruct.value;
+    other.time_sig_num = timeSignatureStruct.numerator;
+    other.time_sig_denom_pow = timeSignatureStruct.denominator_pow;
+    other.key = keyStruct.value;
+    other.mode = modeStruct.value;
+}
+
+Song::Song(Song &other) {
+    this -> name = other.name;
+    this -> name_length = other.name_length;
+    this -> notes = std::vector<NoteStruct>();
+    for (auto note : other.notes) (this -> notes).push_back(NoteStruct(note));
+    this -> tempo = other.tempo;
+    this -> time_sig_num = other.time_sig_num;
+    this -> time_sig_denom_pow = other.time_sig_denom_pow;
+}
+
+Song::Song() {
+    // Do nothing
+}
 
 Song::~Song() {
     
 }
 
-vector<Note> Song::get_notes() { return notes; }
+vector<NoteStruct> Song::get_notes() { return notes; }
 PITCH Song::get_key() { return key; }
 MODE Song::get_mode() { return mode; }
 
 Song Song::breed(Song parent1, Song parent2, double mutation_probability, int &seed) {
     // For each song property (relative pitch, time sig., key sig., etc,
     // make it probably song1 or song2, possibly a mutation)
-    Song smaller_song, larger_song;
+    Song *smaller_song, *larger_song;
     if (parent1.get_notes().size() > parent2.get_notes().size()) {
-        smaller_song = Song(parent2);
-        larger_song = Song(parent1);
+        smaller_song = new Song(parent2);
+        larger_song = new Song(parent1);
     } else {
-        smaller_song = Song(parent1);
-        larger_song = Song(parent2);
+        smaller_song = new Song(parent1);
+        larger_song = new Song(parent2);
     }
-
     // Remove random note sequence from larger song so notes are the same length in both
-    int notes_size = smaller_song.get_notes().size();
+    int notes_size = smaller_song->get_notes().size();
     int remove_ind = get_rand(seed) % notes_size;
-    vector<Note>::iterator iterator1 = larger_song.get_notes().begin();
+    vector<NoteStruct>::iterator iterator1 = larger_song->get_notes().begin();
     advance(iterator1, remove_ind);
-    vector<Note>::iterator iterator2 = vector<Note>::iterator(iterator1);
-    advance(iterator2,  larger_song.get_notes().size()-notes_size-remove_ind);
-    larger_song.get_notes().erase(iterator1, iterator2);
-
-    // Create new song
-    Song new_song;
+    vector<NoteStruct>::iterator iterator2 = vector<NoteStruct>::iterator(iterator1);
+    advance(iterator2,  larger_song->get_notes().size()-notes_size);
+    larger_song->get_notes().erase(iterator1, iterator2);
 
     // Breed notes
-    vector<Note>::iterator smaller_iter = smaller_song.get_notes().begin();
-    vector<Note>::iterator larger_iter = larger_song.get_notes().begin();
-    for (int i = 0; i < smaller_song.get_notes().size(); i++) {
-        new_song.notes.push_back(SongProp<Note>::breed_props(*smaller_iter++, *larger_iter++, mutation_probability, seed));
+    vector<NoteStruct> new_song_notes;
+    vector<NoteStruct>::iterator smaller_iter = smaller_song->get_notes().begin();
+    vector<NoteStruct>::iterator larger_iter = larger_song->get_notes().begin();
+    float total_beats = 0;
+    for (int i = 0; i < smaller_song->get_notes().size(); i++) {
+        NoteStruct new_note = SongProp<NoteStruct>::breed_props(*smaller_iter++, *larger_iter++, mutation_probability, seed);
+        new_song_notes.push_back(new_note);
+        total_beats += new_note.num_beats;
     }
 
-    return new_song;
+    while(total_beats < Island::NUM_BEATS) {
+        NoteStruct new_note = NoteStruct::get_random(seed);
+        new_song_notes.push_back(new_note);
+        total_beats += new_note.num_beats;
+    }
+
+    while (total_beats > Island::NUM_BEATS) {
+        total_beats -= new_song_notes.back().num_beats;
+        new_song_notes.pop_back();
+    }
+
+    delete smaller_song, larger_song;
+
+    return Song(new_song_notes);
 }
 
 bool Song::write_to_midi(char* file_name, char* subdir_name) {
@@ -74,13 +114,13 @@ bool Song::write_to_midi(char* file_name, char* subdir_name) {
 
     
     // Make subdirectory if it doesn't exist
-    struct stat buf;
-    if (stat(subdir_name, &buf)) {
-        if (mkdir(subdir_name)) {
-            cout << "Failed to create subdirectory " << subdir_name << "; exiting" << endl;
-            return false;
-        }
-    }
+    // struct stat buf;
+    // if (stat(subdir_name, &buf)) {
+    //     if (mkdir(subdir_name)) {
+    //         cout << "Failed to create subdirectory " << subdir_name << "; exiting" << endl;
+    //         return false;
+    //     }
+    // }
             
         // Make file and write song to it
     char* file_name_suffix = string(".mid").data();
@@ -117,7 +157,7 @@ bool Song::write_to_midi(char* file_name, char* subdir_name) {
     FILE* file_ptr = fopen(final_file_name, "wb");
 
     // Make header chunk
-    fwrite("MThd", 1, 4, file_ptr); 
+    fwrite("MThd", 1, 4, file_ptr);
     char *header_chars = new char[10];
     for (int i = 0; i < 10; i += 2) header_chars[i] = 0;
     header_chars[1] = header_chars[5] = 0;
@@ -165,18 +205,18 @@ bool Song::write_to_midi(char* file_name, char* subdir_name) {
     fputc(4, file_ptr);
     fputc(6, file_ptr);
     fwrite("Violin", 1, 6, file_ptr);
-
+    cout<<"num notes: "<<notes.size()<<endl;
     // Add notes
     for (auto note : notes) {
         int note_int = 60 + (12 * note.octave + note.pitch);
 
-        // Note on
+        // NoteStruct on
         fputc(0, file_ptr);
         fputc(0x90, file_ptr);
         fputc(note_int, file_ptr);
         fputc(note.dynamics, file_ptr);
 
-        // Note off
+        // NoteStruct off
         fputc(note.num_beats * this -> tempo * 2, file_ptr);
         fputc(0x80, file_ptr);
         fputc(note_int, file_ptr);
@@ -196,27 +236,3 @@ bool Song::write_to_midi(char* file_name, char* subdir_name) {
     delete[] file_name;
     return true;
 }
-
-// int main() {
-//     vector<Note> note_vec;
-
-//     int* fib_sequence = new int[15];
-//     fib_sequence[0] = fib_sequence[1] = 1;
-//     for (int i = 2; i < 20; i++) {
-//         fib_sequence[i] = fib_sequence[i-1] + fib_sequence[i-2];
-//     }
-
-//     for (int i = 0; i < 20; i ++) {
-//         const int pitch = fib_sequence[i];
-//         const Note note {(PITCH) (pitch % 12), pitch / 12, MEZZO_FORTE, .5};
-//         note_vec.push_back(note);
-//     }
-
-//     Song* yay = new Song(string("yay").data(), 3, note_vec, 110, 4, 2);
-//     string file_name = "yay.mid";
-//     string subdir_name = "test";
-//     bool success = yay -> write_to_midi(file_name.data(), subdir_name.data());
-//     cout<<"sucess ? ? "<<success<<endl;
-//     delete yay;
-//     return 0;
-// }

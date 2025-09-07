@@ -1,6 +1,7 @@
 #ifndef MUSIC_UTILS_H
 #define MUSIC_UTILS_H
 #include <vector>
+#include <iostream>
 
 using namespace std;
 
@@ -44,7 +45,7 @@ static inline int get_scale_val(PITCH* scale, PITCH pitch) {
 // Linear Congruential Generator
 static inline int get_rand(int &seed, int multiplier = 17, int increment = 3, int modulus = 57) {
     seed = (multiplier * seed + increment) % modulus;
-    return seed;
+    return abs(seed);
 }
 
 static inline int sum_vec(vector<int> &vec) {
@@ -52,23 +53,7 @@ static inline int sum_vec(vector<int> &vec) {
     for (auto val : vec) sum += val;
     return sum;
 }
+
 vector<int>& operator/=(vector<int> &vec, int scalar);
-
-
-struct Note {
-    PITCH pitch;
-    int octave;
-    DYNAMICS dynamics;
-    double num_beats;
-    int value = octave * 12 + pitch;
-    Note get_value();
-    static inline Note get_random(int &seed) {
-        PITCH pitch = (PITCH) (get_rand(seed) % 12); // [0, 11]
-        int octave = (get_rand(seed) % 4) - 2; // [-2, 1]
-        DYNAMICS dynamics = (DYNAMICS) ((get_rand(seed) % 4) * 32); // {0, 32, 64, 96}
-        double num_beats = (get_rand(seed) % 64) * 0.0625; // {0, 1/16, 1/8, ..., 4}
-        return { pitch, octave, dynamics, num_beats };
-    };
-};
 
 #endif

@@ -10,7 +10,6 @@ using namespace std;
 
 class Island {
     private:
-        const static int NUM_BEATS = 8;
         int seed;
         int population_size;
         Song* population;
@@ -19,9 +18,10 @@ class Island {
         double best_fit_score;
         static double get_fitness(Song song);
     public:
+       const static int NUM_BEATS = 8;
        Island (int population_size);
        ~Island();
-        Song* get_best_song();
+        Song get_best_song();
         Island* evolve(int max_generations, int conv_tolerance);
 };
 

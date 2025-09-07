@@ -3,6 +3,7 @@
 #include <music_utils.h>
 #include <song.h>
 #include <island.h>
+#include <song_props.h>
 
 using namespace std;
 
@@ -11,17 +12,17 @@ double Island::get_fitness(Song song) {
     double stable_pitch_fitness = 50;
     double stable_rhythm_fitness = 50;
     double creative_fitness = 50;
-    vector<Note> notes = song.get_notes();
+    vector<NoteStruct> notes = song.get_notes();
+    if (!notes.size()) return 0;
     PITCH key = song.get_key();
     MODE mode = song.get_mode();
     PITCH *scale = get_scale(key, mode);
-
-    Note last_note = notes[0];
-    if (!in_scale(scale, last_note.pitch)) return 0; // first note must be in the key signature
+    NoteStruct last_note = notes[0];
+  //  if (!in_scale(scale, last_note.pitch)) return 0; // first note must be in the key signature
     // TODO : set this manually when creating song
-    int note_ind = 0;
+    int note_ind = 1;
     while (note_ind < notes.size()) {
-        Note note = notes[note_ind];
+        NoteStruct note = notes[note_ind];
         int interval = abs(note.value - last_note.value);
         int key_interval = note.pitch - key;
 
@@ -54,8 +55,8 @@ double Island::get_fitness(Song song) {
         }
 
         // Three-note sequences
-        if (note_ind -1 < notes.size()) {
-            Note next_note = notes.at(note_ind + 1);
+        if (note_ind + 1 < notes.size()) {
+            NoteStruct next_note = notes.at(note_ind + 1);
             int last_scale_val, this_scale_val, next_scale_val;
             last_scale_val = get_scale_val(scale, last_note.pitch);
             if (last_scale_val > 0) {
@@ -75,13 +76,14 @@ double Island::get_fitness(Song song) {
                 }
             }
         }
+        note_ind++;
     }
     delete[] scale;
-    return stable_rhythm_fitness * stable_pitch_fitness * creative_fitness;
+    double score = stable_rhythm_fitness * stable_pitch_fitness * creative_fitness;
+    return score;
 }
 
 Island::Island (int population_size) {
-    cout<<"HI?"<<endl;
     this -> population_size =  4 * (population_size / 4); // ensure population size is divisble by 4
     this -> population = new Song[this -> population_size];
     this -> is_evolved = false;
@@ -91,17 +93,17 @@ Island::Island (int population_size) {
 Island::~Island() {
     delete[] population;
 }
-Song* Island::get_best_song() { return best_song; }
+Song Island::get_best_song() { return Song(*best_song); } // return a copy for protection
+
 Island* Island::evolve(int max_generations, int conv_tolerance) {
     vector<int> fitness_vec;
     int total_fitness_score = 0;
     // Set initial song & note properties, completely randomly
     for (int i = 0; i < population_size; i++) {
-        int curr_beat = 0;
-        vector<Note> notes;
-        while (curr_beat < NUM_BEATS) {
-        cout<<"adding note"<<endl;
-            const Note note = Note::get_random(seed);
+        double curr_beat = 0;
+        vector<NoteStruct> notes;
+        while (curr_beat < Island::NUM_BEATS) {
+            const NoteStruct note = NoteStruct::get_random(seed);
             curr_beat += note.num_beats;
             notes.push_back(note);
         }
@@ -110,52 +112,56 @@ Island* Island::evolve(int max_generations, int conv_tolerance) {
         int score = get_fitness(song);
         fitness_vec.push_back(score);
         total_fitness_score += score;
-        fitness_vec /= total_fitness_score;
     }
+    fitness_vec /= total_fitness_score;
 
-    int iter = 0;
-    while (iter++ < max_generations) {
-        cout<<iter<<endl;
-        delete[] population;
-        population = new Song[population_size];
+    int iter = -1;
+    Song *new_population = new Song[population_size];
+    while (++iter < max_generations) {
         // Randomly select parents based on population size & breed
-        for (int i = 0; i < population_size / 4; i+= 2) {
-            Song* parents = new Song[2];
-            for (int j = i; j < i + 2; j+=1) {
+        for (int i = 0; i < population_size / 4; i++) {
+            Song *parents = new Song[2];
+            for (int j = i; j < i + 2; j++) {
                 double rand_score = (get_rand(seed) % total_fitness_score) / (double) total_fitness_score;
                 double curr_fitness_score = 0;
-                int ind = 1;
-                while (ind < fitness_vec.size()) {
+                int ind = -1;
+                // Parent selected via random select with fitness scores as weights
+                while (++ind < fitness_vec.size()) {
                     curr_fitness_score += fitness_vec[ind];
                     if (curr_fitness_score > rand_score) break;
-                    ind ++;
                 }
-                fitness_vec[ind-1] = 0;
+                fitness_vec[ind-1] = 0; // cannot select one song as a parent twice
                 parents[j-i] = population[ind-1];
-                fitness_vec /= sum_vec(fitness_vec);
+                double sum = sum_vec(fitness_vec);
+                if (sum) fitness_vec /= sum;
             }
             int start_ind = i * 4, count = 0;
-            while (count < 4) population[start_ind+(count++)] = Song::breed(parents[0], parents[1], .2, seed);
+            while (count < 4) new_population[start_ind+(count++)] = Song::breed(parents[0], parents[1], .2, seed);
+            delete[] parents;
         }
+    //    delete[] population;
+        population = new_population;
 
         // Assess fitness and find best fitness
         int best_fit_ind = -1;
         double best_fit_score = 0;
-        total_fitness_score = 0;
         for (int i = 0; i < population_size; i++) {
             double score = get_fitness(population[i]);
             fitness_vec[i] = score;
-            total_fitness_score += score;
             if (score > best_fit_score) {
                 score = best_fit_score;
-            }
+                best_fit_ind = i;
+            } 
         }
-        if (best_fit_score < conv_tolerance) {
+        if (best_fit_score < conv_tolerance || iter == max_generations - 1) {
             this -> best_fit_score = best_fit_score;
-            Song best_song_obj(population[best_fit_ind]);
+            Song best_song_obj(population[best_fit_ind], "Optimized Song", 
+                               TempoStruct::get_random(seed), TimeSignatureStruct::get_random(seed),
+                               KeyStruct::get_random(seed), ModeStruct::get_random(seed));
             best_song = &best_song_obj;
             return this;
         }
+        total_fitness_score = sum_vec(fitness_vec);
     }
     return this;
 }

@@ -5,6 +5,8 @@ using namespace std;
 int main() {
     Island island(10);
     island.evolve(10,5);
-    island.get_best_song()->write_to_midi(std::string("test.midi").data(),std::string("./audio_files").data());
+    std::string subdir_name = "audio";
+    std::string file_name = "test.mid";
+    island.get_best_song().write_to_midi(file_name.data(),subdir_name.data());
     return 0;
 }
