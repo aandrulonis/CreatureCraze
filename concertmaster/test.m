@@ -1,4 +1,4 @@
-readme = fopen('./test/yay.mid');
+readme = fopen('./cpp/audio/test.mid');
 [readOut, byteCount] = fread(readme);
 fclose(readme);
 

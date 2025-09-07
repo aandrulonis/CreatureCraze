@@ -19,7 +19,7 @@ async function startup() {
     const { runPong } = await import("./modules/minigames/Pong.js");
   //  const { runPacman } = await import("./modules/minigames/Pacman.js");
     const { runSpaceInvaders } = await import("./modules/minigames/SpaceInvaders.js");
-    const { runMotorcycleRacer } = await import("./modules/minigames/MotorcycleRacer.js");
+    // const { runMotorcycleRacer } = await import("./modules/minigames/MotorcycleRacer.js");
     
     let jsonPromise;
     await fetch("./json/stereo.json").then((response)=> {if (!response.ok) jsonPromise = null;  else jsonPromise = response.json(); });
