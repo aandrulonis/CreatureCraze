@@ -10,8 +10,6 @@ const frameDT = tempoToDT(tempo, framesPerBeat);
 const beep = new Audio('clipped_beep.m4a');
 const imgDX = barLength*Math.sin(MAX_THETA/2);
 let frame = 0;
-const burnImg = new Image();
-burnImg.src = './burn.png';
 const imgWidth = width/6;
 const imgHeight = height/3;
 
@@ -38,8 +36,6 @@ async function loop() {
     const beatFrac = .5 * frameRem/framesPerBeat;
     const barTheta = beatFrac < .5 ? beatFrac * MAX_THETA * 2 : (1-beatFrac)*2*MAX_THETA;
     drawMetronome(barTheta);
-    ctx.drawImage(burnImg,width/2-imgWidth-imgDX,height-imgHeight,imgWidth,imgHeight);
-    ctx.drawImage(burnImg,width/2+imgDX,height-imgHeight,imgWidth,imgHeight);
     await new Promise((res)=>setTimeout(()=>res(),Math.max(0,startTime+frame*frameDT-performance.now())));
     requestAnimationFrame(loop);
 }

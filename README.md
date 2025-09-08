@@ -1,1 +1,1 @@
-# A WIP collection of minigames
+# A WIP collection of mini-games

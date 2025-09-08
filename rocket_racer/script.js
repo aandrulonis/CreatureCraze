@@ -397,9 +397,9 @@ class Rocket {
 
 function startup(startBackgroundImage, startButton, width, height) {
     ctx.drawImage(startBackgroundImage, 0, 0, width, height);
-    ctx.font = `${width/5}px Title-Font`;
-    ctx.strokeText("Rocket", width/100, width/4.5);
-    ctx.strokeText("Racers", width/100, width/2.5);
+    ctx.font = `800 ${width/5}px Title-Font`;
+    ctx.fillText("Rocket", width/100, width/4.5);
+    ctx.fillText("Racers", width/100, width/2.5);
     return new Promise((resolve) => startButton.addEventListener('click',()=>{
         startButton.style.visibility = 'Hidden';
         resolve();

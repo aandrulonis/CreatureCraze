@@ -1,3 +1,5 @@
+% Copy / pasted form Matlab documentation
+
 readme = fopen('./cpp/audio/test.mid');
 [readOut, byteCount] = fread(readme);
 fclose(readme);
