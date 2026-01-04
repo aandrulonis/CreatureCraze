@@ -1,14 +1,18 @@
+import { Color, LightSource, Vec3 } from "../../../utils";
+
 abstract class Shape3D {
     surfaceRoughness: number;
     diffuseCol: Color;
     spectralCol: Color;
     shininess: number;
+    lightSource: LightSource;
 
-    constructor(surfaceRoughness: number, diffuseCol: Color, spectralCol: Color, shininess: number) {
+    constructor(surfaceRoughness: number, diffuseCol: Color, spectralCol: Color, shininess: number, lightSource: LightSource) {
         this.surfaceRoughness = surfaceRoughness;
         this.diffuseCol = diffuseCol;
         this.spectralCol = spectralCol;
         this.shininess = shininess;
+        this.lightSource = lightSource;
     }
 
     
@@ -21,13 +25,21 @@ abstract class Shape3D {
         while (i++ < numVertices) indices.push(i);
         return indices;
     }
-    public getColors(vertices: Array<Vec3>, lightColor : Color, lightPos : Vec3) : Array<Color>  {
+
+    public draw(objPos: Vec3, lightSource: LightSource, observerPos: Vec3) {
+
+    }
+
+    private getColors(vertices: Array<Vec3>, lightColor : Color, lightPos : Vec3) : Array<Color>  {
         const norms : Array<Vec3> = this.getNorms(colorRes);
         const colors : Array<Color> = [];
         norms.forEach((norm) => {
             colors.push(new Color(r, g, b, this.diffuseCol.a))
-        })
+        });
+        return colors;
     }
+
+
     public getCollision(otherObj : Shape3D) : boolean {
 
     }
@@ -90,3 +102,5 @@ abstract class Shape3D {
         return normal.dot(v).scale(1/denom);
     }
 }
+
+export { Shape3D };

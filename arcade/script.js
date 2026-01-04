@@ -2,6 +2,7 @@ const pongButton = document.getElementById("Pong-Button");
 const pacmanButton = document.getElementById("Pacman-Button");
 const spaceInvadersButton = document.getElementById("Space-Invaders-Button");
 const motorcycleRacerButton = document.getElementById("Motorcycle-Racer-Button");
+const surfingersButton = document.getElementById("Surfingers-Button");
 const modeButtons = document.getElementById("Mode-Selection");
 const beginnerButton = document.getElementById("Beginner");
 const intermediateButton = document.getElementById("Intermediate");
@@ -20,6 +21,7 @@ async function startup() {
   //  const { runPacman } = await import("./modules/minigames/Pacman.js");
     const { runSpaceInvaders } = await import("./modules/minigames/SpaceInvaders.js");
     // const { runMotorcycleRacer } = await import("./modules/minigames/MotorcycleRacer.js");
+    const { runSurfingers } = await import("./modules/minigames/surfingers.js");
     
     let jsonPromise;
     await fetch("./json/stereo.json").then((response)=> {if (!response.ok) jsonPromise = null;  else jsonPromise = response.json(); });
@@ -44,9 +46,15 @@ async function startup() {
     spaceInvadersButton.addEventListener('click', () => {
         runSpaceInvaders(frameDT, utils, spaceInvaderImports);
     });
-    motorcycleRacerButton.addEventListener('click', () => {
-        runMotorcycleRacer(frameDT, utils);
-    })
+    // motorcycleRacerButton.addEventListener('click', () => {
+    //     runMotorcycleRacer(frameDT, utils);
+    // });
+    const animalImg = new Image();
+    animalImg.src = 'images/surfingers/croc.png';
+    surfingersButton.addEventListener('click', () => {
+        runSurfingers(frameDT, utils, { 
+            draw(ctx, x,y,w,h) {  ctx.drawImage(animalImg, x, y, w, h) } });
+    });
 }
 
 startup();

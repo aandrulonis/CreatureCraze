@@ -144,4 +144,12 @@ class RectangularDomain {
     }
 }
 
-export { PI, outcomes, modes, directions, Color, Vec2, Vec3, RectangularDomain };
+class LightSource {
+    constructor(color, position, intensity) {
+        this.color = color; // Color
+        this.position = position; // Vec3
+        this.intensity = intensity; // double in range [0, 1]
+    }
+}
+
+export { PI, outcomes, modes, directions, Color, Vec2, Vec3, RectangularDomain, LightSource };

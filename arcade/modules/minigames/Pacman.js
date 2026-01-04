@@ -24,22 +24,46 @@ class PacmanProps {
             this.y = y;
         }
     };
-    static MinHeap = class {
-        constructor(headVal) {
-            this.head = {val: headVal, child1: null, child2: null};
-            this.nodes = [headVal]
-        }
-        push(val) {
+    static NodeListQueue = class {
+        // Circular array-backed queue
 
+        constructor() {
+            this.backingArray = new Array<Array<PacmanProps.Node>>(10);
+            this.start = 0;
+            this.size = 0;
         }
-        pop() {
-            this.nodes
+
+        add(nodeList) {
+            if (this.size >= this.backingArray.size) resizeBackingArray();
+            backingArray[mod(--this.start, this.backingArray.length)] = nodeList;
+            this.size++;
         }
+
+        remove() {
+            const nodeList = backingArray[mod(this.start + --this.size, this.backingArray.length)];
+            return nodeList;
+        }
+
+        resizeBackingArray() {
+            const ogLength = this.backingArray.length;
+            const newBackingArray = new Array<Array<PacmanProps.Node>>(ogLength * 2 + 1);
+            for (let i = 0; i < this.size; i++) newBackingArray[i] = this.backingArray[mod(i + this.start, ogLength)];
+            this.backingArray = newBackingArray;
+            this.start = 0;
+        }
+
+        mod(dividend, divisor) {
+            let mod = dividend % divisor;
+            while (mod < 0) mod += divisor;
+            return mod;
+        }
+
+        isEmpty() { return this.size == 0; }
     }
     static Node = class {
         constructor(index, neighborNodes) {
             this.index = index;
-            this.neighborNodes = neighborNodes;
+            this.neighborNodes = neighborNodes; // map of directions : Node
             this.tile = null;
         }
 
@@ -51,40 +75,42 @@ class PacmanProps {
 
         toString() {
             const neighborIndices = [];
-            for (let i = 0; i < this.neighborNodes.length; i++) neighborIndices.push(this.neighborNodes[i].index);
+            this.neighborNodes.entries().forEach((en) => neighborIndices.push(en[1].index));
             return neighborIndices.length > 0 ? `Node ${this.index} with neighbors ${neighborIndices} and tile ${this.tile}`
                                               : `Node ${this.index} with no neighbors and tile ${this.tile}`;
         }
 
         static connected(node1, node2) {
-            return node1.neighborNodes.indexOf(node2) >= 0;
-        }
-
-        static oneBetween(node1, node2) {
-            for (let i = 0; i < node2.neighborNodes.length; i++) {
-                if (node1.neighborNodes.indexOf(node2.neighborNodes[i]) >= 0) return true;
-            }
+            node1.neighborNodes.entries().forEach((en) => {
+                if (en[1] == node2) return true;
+            });
             return false;
         }
 
-        // Modified Dijkstra
+        static oneBetween(node1, node2) {
+            node1.neighborNodes.entries().forEach((en) => {
+                if (this.connected(en[1], node2)) return true;
+            });
+            return false;
+        }
+
+        // Modified BFS
         static shortestPath(start, end, totalVertices) {
-            const minHeap = PacmanProps.MinHeap({0: start});
-            const distances = [];
-            for (let i = 0; i < totalVertices; i++) distances.push(Math.max);
-            const path = [start];
-            const updateHeap = (minHeap,dist,path) => {
-                const head = minHeap.pop();
-                for (let i = 0; i < head.neighborNodes; i++) {
-                    if (!head.neighborNodes[i]) continue;
-                    thisDist = dist[head.index] + 1;
-                    if (thisDist < dist[head.neighborNodes[i].index]) {
-                        dist[head.neighborNodes[i].index] = thisDist;
-                        minHeap.push({thisDist: head.neighborNodes[i].index});
+            const queue = new PacmanProps.NodeListQueue();
+            const visitedSet = new Set();
+            queue.add([start]);
+            while (!queue.isEmpty() && visitedSet.size() < totalVertices) {
+                const nodeList = queue.remove();
+                const lastNode = nodeList[nodeList.size() - 1];
+                visitedSet.add(lastNode);
+                if (lastNode == end) return nodeList;
+                lastNode.neighborNodes.entries().forEach((en) => {
+                    if (!visitedSet.contains(en[1])) {
+                        queue.add(nodeList.add(en[1]));
                     }
-                    updateHeap(minHeap,path);
-                }
+                });
             }
+            return [];
         }
 
         static generateRandomGraph(numEndpoints) {
