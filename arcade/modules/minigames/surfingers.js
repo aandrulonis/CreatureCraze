@@ -9,30 +9,36 @@ class SurfingersProps {
     };
 
     static Wave = class {
-        constructor(x, lastLevel) {
+        constructor(x, lastLevel, lastLastLevel) {
             this.x = x;
             this.zone = Object.values(SurfingersProps.zones)[Math.floor(this.x / SurfingersProps.ZONE_WIDTH) 
                 % Object.values(SurfingersProps.zones).length];
-            let maxLevel = Math.min(lastLevel + 2, SurfingersProps.MAX_WAVE_LEVEL);
-            let minLevel = Math.max(lastLevel - 2, SurfingersProps.MIN_WAVE_LEVEL);
+            let maxLevel, minLevel;
+            if (lastLastLevel >= SurfingersProps.MIN_WAVE_LEVEL && Math.abs(lastLastLevel - lastLevel) == 2) {
+                maxLevel = Math.min(lastLevel + 1, SurfingersProps.MAX_WAVE_LEVEL);
+                minLevel = Math.max(lastLevel - 1, SurfingersProps.MIN_WAVE_LEVEL);
+            } else { 
+                maxLevel = Math.min(lastLevel + 2, SurfingersProps.MAX_WAVE_LEVEL);
+                minLevel = Math.max(lastLevel - 2, SurfingersProps.MIN_WAVE_LEVEL);
+            }
             this.level = Math.floor((maxLevel - minLevel + 1) * Math.random()) + minLevel;
             this.image = new Image();
-            let imageSrc = './images/surfingers/';
+            this.imageSrcRoot = './images/surfingers/';
             switch (this.zone) {
                 case SurfingersProps.zones.OCEAN:
-                    imageSrc += 'ocean.png';
+                    this.imageSrcRoot += 'ocean';
                     break;
                 case SurfingersProps.zones.RAINFOREST:
-                    imageSrc += 'river.png';
+                    this.imageSrcRoot += 'river';
                     break;
                 case SurfingersProps.zones.WINTER_FOREST:
-                    imageSrc += 'snow.png';
+                    this.imageSrcRoot += 'snow';
                     break;
             }
-            this.image.src = imageSrc;
         }
 
-        draw(leftX) {
+        draw(leftX, isCurr) {
+            this.image.src = isCurr ? this.imageSrcRoot + "_highlighted.png" : this.imageSrcRoot + ".png";
             if (leftX + backgroundWidth < this.x) return;
             let y;
             for (let i = 0; i < this.level; i++) {
@@ -60,7 +66,6 @@ class SurfingersProps {
     };
 
     keyupFunc = (evt) => {
-        console.log("YAY")
         if (evt.key != this.currKeyDown) return;
         if (this.currKeyDown == "ArrowUp") {
             if (this.currWave.level < SurfingersProps.MAX_WAVE_LEVEL) this.currWave.level++;
@@ -82,13 +87,15 @@ class SurfingersProps {
         if (this.vel < SurfingersProps.MAX_VEL) this.vel += SurfingersProps.ACCEL * frameDT;
         while (this.x  + backgroundWidth - SurfingersProps.ANIMAL_X >= this.waves[this.waves.length - 1].x) {
             const lastWave = this.waves[this.waves.length - 1];
-            this.waves.push(new SurfingersProps.Wave(lastWave.x + SurfingersProps.WAVE_WIDTH, lastWave.level));
+            const lastLastLevel = this.waves.length < 2 ? -1 : this.waves[this.waves.length - 2].level;
+            this.waves.push(new SurfingersProps.Wave(lastWave.x + SurfingersProps.WAVE_WIDTH, lastWave.level, lastLastLevel));
         }
         let spliceCount = 0;
         while (spliceCount < this.waves.length && this.x > this.waves[spliceCount].x + SurfingersProps.WAVE_WIDTH) {
             spliceCount++;
         }
         this.waves.splice(0, spliceCount);
+        this.score += spliceCount;
         if (this.currWave.level != this.waves[0].level) return false; // game over
         this.currWave = this.waves[0];
         return true;
@@ -96,8 +103,9 @@ class SurfingersProps {
 
     draw() {
         ctx.fillRect(0, 0, backgroundWidth, backgroundHeight);
-        for (const wave of this.waves) wave.draw(this.x - SurfingersProps.ANIMAL_X);
+        for (const wave of this.waves) wave.draw(this.x - SurfingersProps.ANIMAL_X, wave==this.currWave);
         this.animal.draw(ctx, SurfingersProps.ANIMAL_X, this.y, SurfingersProps.ANIMAL_WIDTH, SurfingersProps.ANIMAL_HEIGHT);
+        ctx.strokeText(this.score, backgroundWidth*3/8, backgroundHeight/8, backgroundWidth/4, backgroundHeight/4);
     }
 
     constructor(animal) {
@@ -106,11 +114,13 @@ class SurfingersProps {
         this.x = 0;
         this.currKeyDown = null;
         this.waves = [];
+        this.score = 0;
+        ctx.font = `${backgroundWidth/10}px cosmic-sans`;
         
         SurfingersProps.BOAT_IMAGE = new Image();
         SurfingersProps.BOAT_IMAGE.src = './images/surfingers/sailboat.png';
-        SurfingersProps.START_VEL = backgroundWidth / 4000; // pixels per millisecond
-        SurfingersProps.MAX_VEL = backgroundWidth / 2000; // pixels per millisecond
+        SurfingersProps.START_VEL = backgroundWidth / 5000; // pixels per millisecond
+        SurfingersProps.MAX_VEL = backgroundWidth / 2500; // pixels per millisecond
         SurfingersProps.ACCEL = backgroundWidth / 10_000_000; // pixel per millisecond ^ 2
         SurfingersProps.MIN_WAVE_LEVEL = 3;
         SurfingersProps.MAX_WAVE_LEVEL = 6;
@@ -123,15 +133,17 @@ class SurfingersProps {
         SurfingersProps.FOAM_IMAGE = new Image();
         SurfingersProps.FOAM_IMAGE.src = './images/surfingers/foam.png';
         SurfingersProps.FOAM_HEIGHT = SurfingersProps.WAVE_LEVEL_HEIGHT / 6;
-        SurfingersProps.ZONE_WIDTH = SurfingersProps.WAVE_WIDTH * 100;
+        SurfingersProps.ZONE_WIDTH = SurfingersProps.WAVE_WIDTH * 20;
 
         let currWaveX = 0;
         let lastLevel = 4;
+        let lastLastLevel = -1;
         do {
-            const newWave = new SurfingersProps.Wave(currWaveX, lastLevel)
+            const newWave = new SurfingersProps.Wave(currWaveX, lastLevel, lastLastLevel);
             this.waves.push(newWave);
             lastLevel = newWave.level;
             currWaveX += SurfingersProps.WAVE_WIDTH;
+            lastLastLevel = lastLevel;
         } while(currWaveX < backgroundWidth);
         this.currWave = this.waves[0];
 

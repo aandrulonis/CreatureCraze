@@ -1,4 +1,5 @@
 const PI = Math.PI;
+const g = -9.81
 
 const outcomes = { 
     IN_PROGRESS: "In Progress",
@@ -152,4 +153,4 @@ class LightSource {
     }
 }
 
-export { PI, outcomes, modes, directions, Color, Vec2, Vec3, RectangularDomain, LightSource };
+export { PI, g, outcomes, modes, directions, Color, Vec2, Vec3, RectangularDomain, LightSource };
