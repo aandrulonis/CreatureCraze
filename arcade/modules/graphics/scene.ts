@@ -19,14 +19,15 @@ class Scene {
         const dTheta = 2 * Math.PI / n2;
         let psiI = 0;
         let thetaI = 0;
-        let sum = 0;
+        let sum = Vec3.ORIGIN;
         for (let i = 0; i < n1; i++) {
             for (let j = 0; j < n2; j++) {
-                sum += *Math.cos(thetai)*Math.sin(thetai)*dPsi * dTheta
+                L = this.lightSource.color.scale( * Math.cos(theta0))
+                sum += Math.cos(thetai)*Math.sin(thetai)*dPsi * dTheta
                 psiI += dPsi;
                 thetaI += dTheta;
             }
         }
-        return sum *  
+        return sum *  Math.PI * kd * c / (n1 * n2);
     }
 }
