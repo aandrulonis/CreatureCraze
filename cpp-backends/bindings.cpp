@@ -8,6 +8,7 @@
 #include "graphics/scene.h"
 #include "graphics/shapes/3D/ellipsoid.h"
 #include "graphics/shapes/3D/shape3d.h"
+#include "concertmaster/island.h"
 
 using namespace emscripten;
 
@@ -55,7 +56,6 @@ EMSCRIPTEN_BINDINGS(cpp_utils) {
         .function("getVertexColors", &Scene::get_vertex_colors)
         .function("numTriangles", &Scene::get_num_triangles)
         .function("numVertices", &Scene::get_num_vertices);
-
     class_<Shape3D>("Shape3D");
     class_<Ellipsoid, emscripten::base<Shape3D>>("Ellipsoid")
         .constructor<double, double, double, double, double, vec3, vec3>();
@@ -70,4 +70,15 @@ EMSCRIPTEN_BINDINGS(cpp_utils) {
         .function("setRoll", &MotorcycleDynamics::set_roll)
         .function("propagate", &MotorcycleDynamics::propagate)
         .function("inertialToPOV", &MotorcycleDynamics::inertial_to_POV);
+
+    class_<Island>("Island")
+        .constructor<int>()
+        .function("evolve", &Island::evolve)
+        .function("getBestSong", &Island::get_best_song);
+    
+    class_<Song>("Song")
+        .function("writeToMidi",optional_override([](Song &self, std::string fname, std::string dname) {
+            return self.write_to_midi(fname.data(), dname.data());
+        }))
+        .function("numNotes", &Song::get_num_notes);    
  }

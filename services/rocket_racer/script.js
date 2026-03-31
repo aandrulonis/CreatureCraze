@@ -482,8 +482,8 @@ async function setupHTMLElements() {
     const countdownNum = document.getElementById('Countdown');
         
     const canvas = document.querySelector(".RocketCanvas");
-    const canvasWidth = (canvas.width = window.innerWidth);
-    const canvasHeight = (canvas.height = window.innerWidth*.75);
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
     ctx = canvas.getContext("2d");
     const titleFont = new FontFace('Title-Font', 'url(fonts/SpaceCrusadersItalic-ZV1Zx.ttf)');
     await titleFont.load().then(function(font){

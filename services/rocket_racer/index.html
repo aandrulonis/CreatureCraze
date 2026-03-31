@@ -1,44 +1,10 @@
 <html>
-    <style>
-        div {
-            margin: auto;
-            text-align: center;
-        }
-        .RocketCanvas {
-            margin: auto;
-            width: 1000px;
-            height: 750px;
-        }
-        .Button {
-            cursor: pointer;
-            border-radius: 6px;
-            position: absolute;
-            /* display: flex; */
-            color: white;
-            font-size: 50px;
-            text-align: center;
-            align-self: center;
-            background-color: red;
-        }
-        #Start-Button {
-            top: 60%;
-            left: 40%;
-        }
-        #Countdown {
-            margin: auto;
-            position: absolute;
-            color: red;
-            font-size: 300;
-            top: 60%;
-            left: 40%;
-            text-align: center;
-            align-self: center;
-            visibility: 'Hidden';
-        }
-    </style>
+    <head>
+        <link rel="stylesheet" href="/style.css">
+    </head>
     <div>
-        <canvas class = "RocketCanvas"></canvas>
-        <div id = "Start-Button" class = "Button">Start</div>
+        <div class="canvas-wrap"><canvas class = "RocketCanvas" width = 800px height = 600px></canvas></div>
+        <div id = "Start-Button" class = "btn btn-red btn-lg">Start</div>
         <div id = "Countdown"></div>
     </div>
     <script src = script.js></script>

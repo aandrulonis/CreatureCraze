@@ -20,7 +20,7 @@ async function startup() {
     const { runPong } = await import("./modules/minigames/Pong.js");
   //  const { runPacman } = await import("./modules/minigames/Pacman.js");
     const { runSpaceInvaders } = await import("./modules/minigames/SpaceInvaders.js");
-    const { runMotorcycleRacer } = await import("./modules/minigames/MotorcycleRacer.js");
+  //  const { runMotorcycleRacer } = await import("./modules/minigames/MotorcycleRacer.js");
     const { runSurfingers } = await import("./modules/minigames/surfingers.js");
     const { default: cpp_utils } = await import('../cpp_utils.js');
     const cppUtils = await cpp_utils();
@@ -49,9 +49,9 @@ async function startup() {
     spaceInvadersButton.addEventListener('click', () => {
         runSpaceInvaders(frameDT, utils, spaceInvaderImports);
     });
-    motorcycleRacerButton.addEventListener('click', () => {
-        runMotorcycleRacer(frameDT, utils, cppUtils);
-    });
+    // motorcycleRacerButton.addEventListener('click', () => {
+    //     runMotorcycleRacer(frameDT, utils, cppUtils);
+    // });
     const animalImg = new Image();
     animalImg.src = 'images/surfingers/croc.png';
     surfingersButton.addEventListener('click', () => {

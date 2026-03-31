@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 #include <vector>
-#include <music_utils.h>
-#include <song.h>
+#include "music_utils.h"
+#include "song.h"
 
 using namespace std;
 
@@ -22,7 +22,7 @@ class Island {
        Island (int population_size);
        ~Island();
         Song get_best_song();
-        Island* evolve(int max_generations, int conv_tolerance);
+        void evolve(int max_generations, int conv_tolerance);
 };
 
 #endif

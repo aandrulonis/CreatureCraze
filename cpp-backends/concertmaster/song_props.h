@@ -1,7 +1,7 @@
 #ifndef SONG_PROPS_H
 #define SONG_PROPS_H
 
-#include <music_utils.h>
+#include "music_utils.h"
 
 using namespace std;
 
@@ -16,7 +16,7 @@ template <typename T> class SongProp {
                 return T::get_random(seed);
             } else {
                 return rand < mutation_probability + (1-mutation_probability) / 2 ? 
-                       prop1 : prop2; 
+                       T(prop1) : T(prop2); 
             }
         }
         static T get_random(int &seed) { return SongProp<T>(T::get_random()); }
@@ -33,7 +33,7 @@ struct NoteStruct {
         PITCH pitch = (PITCH) (get_rand(seed) % 12); // [0, 11]
         int octave = (get_rand(seed) % 4) - 2; // [-2, 1]
         DYNAMICS dynamics = (DYNAMICS) ((get_rand(seed) % 4) * 32); // {0, 32, 64, 96}
-        double num_beats = (get_rand(seed) % 64) * 0.0625; // {0, 1/16, 1/8, ..., 4}
+        double num_beats = (get_rand(seed) % 63 + 1) * 0.0625; // {1/16, 1/8, ..., 4}
         return { pitch, octave, dynamics, num_beats };
     };
 };

@@ -1,7 +1,6 @@
 var frameDT, PI, outcomes, modes, Vec2, canvas, ctx, backgroundWidth, backgroundHeight;
 
 class PongProps {
-    static START_BUTTON = document.getElementById('Pong-Start-Button');
     static unicornDirection = {
         RIGHT: 1,
         LEFT: -1

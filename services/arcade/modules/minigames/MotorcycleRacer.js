@@ -102,12 +102,27 @@ async function runMotorcycleRacer(frameDT, utils, cppUtils) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
-   // gl.viewport(0, 0, canvas.width, canvas.height);
-    console.log(`buff info: ${gl.getBufferParameter(gl.ARRAY_BUFFER, gl.BUFFER_USAGE)}`)
-
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearDepth(1.0); // Clear everything
+  gl.enable(gl.DEPTH_TEST); // Enable depth testing
+  gl.depthFunc(gl.LEQUAL); // Near things obscure far things
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     // clear to black
     gl.clearColor(1,1,1, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+gl.drawElements(gl.TRIANGLES, indices.length/3, gl.UNSIGNED_SHORT, 0);
+
+  // Set the shader uniforms
+  gl.uniformMatrix4fv(
+    projectionMatrix,
+    false,
+    projectionMatrix
+  );
+  gl.uniformMatrix4fv(
+    modelViewMatrix,
+    false,
+    modelViewMatrix
+  );
 
    function mainFunc() {
         let currFrame = 0;
@@ -116,8 +131,8 @@ async function runMotorcycleRacer(frameDT, utils, cppUtils) {
             requestAnimationFrame(animate);
             async function animate () {
                 currFrame++;
-                gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
-                console.log('running')
+                gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+           //     console.log('running')
                 await new Promise((res)=>setTimeout(()=>res(),Math.max(0,startTime+currFrame*frameDT-performance.now())))
                 requestAnimationFrame(animate);
             }

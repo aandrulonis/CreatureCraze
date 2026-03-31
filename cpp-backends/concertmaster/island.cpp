@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <vector>
-#include <music_utils.h>
-#include <song.h>
-#include <island.h>
-#include <song_props.h>
+#include "music_utils.h"
+#include "song.h"
+#include "island.h"
+#include "song_props.h"
 
 using namespace std;
 
@@ -95,7 +95,7 @@ Island::~Island() {
 }
 Song Island::get_best_song() { return Song(*best_song); } // return a copy for protection
 
-Island* Island::evolve(int max_generations, int conv_tolerance) {
+void Island::evolve(int max_generations, int conv_tolerance) {
     vector<int> fitness_vec;
     int total_fitness_score = 0;
     // Set initial song & note properties, completely randomly
@@ -136,7 +136,7 @@ Island* Island::evolve(int max_generations, int conv_tolerance) {
                 if (sum) fitness_vec /= sum;
             }
             int start_ind = i * 4, count = 0;
-            while (count < 4) new_population[start_ind+(count++)] = Song::breed(parents[0], parents[1], .2, seed);
+            while (count < 4) new_population[start_ind+(count++)] = Song(parents[0]); // Song::breed(parents[0], parents[1], .2, seed);
             delete[] parents;
         }
     //    delete[] population;
@@ -153,15 +153,14 @@ Island* Island::evolve(int max_generations, int conv_tolerance) {
                 best_fit_ind = i;
             } 
         }
-        if (best_fit_score < conv_tolerance || iter == max_generations - 1) {
+      //  if (best_fit_score < conv_tolerance || iter == max_generations - 1) {
             this -> best_fit_score = best_fit_score;
             Song best_song_obj(population[best_fit_ind], "Optimized Song", 
                                TempoStruct::get_random(seed), TimeSignatureStruct::get_random(seed),
                                KeyStruct::get_random(seed), ModeStruct::get_random(seed));
             best_song = &best_song_obj;
-            return this;
-        }
+            return;
+    //    }
         total_fitness_score = sum_vec(fitness_vec);
     }
-    return this;
 }
